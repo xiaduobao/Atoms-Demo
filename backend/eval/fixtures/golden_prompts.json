@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Todo App",
+    "prompt": "做一个 Todo 应用，支持添加、完成、删除任务，使用 localStorage 持久化"
+  },
+  {
+    "title": "Landing Page",
+    "prompt": "做一个 SaaS 落地页，包含 Hero、功能介绍、定价三档"
+  },
+  {
+    "title": "Dashboard",
+    "prompt": "做一个 KPI 仪表盘，4 个指标卡片和 CSS 柱状图"
+  }
+]
