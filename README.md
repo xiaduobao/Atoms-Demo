@@ -15,6 +15,8 @@ AI-powered app builder inspired by [Atoms](https://atoms.dev/) — describe an i
 
 分享页示例：https://atoms-demo-rho.vercel.app/share/demo-todo
 
+> 受免费部署资源与网络限制，线上访问可能较慢；可参考 [snapshot/](snapshot/) 截图（`dashboard.png` / `chat.png` / `code.png`）。
+
 笔试提交说明见 [SUBMISSION.md](SUBMISSION.md)
 
 ## Quick Start

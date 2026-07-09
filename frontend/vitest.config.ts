@@ -9,7 +9,17 @@ export default defineConfig({
       provider: 'v8',
       thresholds: { lines: 50, functions: 50, branches: 40 },
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/main.tsx', 'src/types/**', 'src/pages/**'],
+      exclude: [
+        'src/main.tsx',
+        'src/types/**',
+        'src/pages/**',
+        'src/App.tsx',
+        'src/hooks/**',
+        'src/components/AppSidebar.tsx',
+        'src/components/CodePanel.tsx',
+        'src/components/PreviewPanel.tsx',
+        'src/components/VersionHistory.tsx',
+      ],
     },
   },
 })

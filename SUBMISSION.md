@@ -11,6 +11,8 @@
 
 **测试账号：** `demo@atoms.demo` / `demo123456`（登录页已预填）
 
+> **访问说明：** 受免费部署 tier（Vercel + Railway）及跨境网络影响，线上访问可能偏慢，首次加载或 LLM 生成需等待数十秒。若链接超时或响应迟缓，可参考仓库内静态截图快速了解界面与功能（见下方 [界面截图](#界面截图snapshot)）。
+
 ---
 
 ## 推荐体验路径（30 秒）
@@ -26,6 +28,18 @@
 3. 审批 Plan → **Generate** → 右侧实时预览
 4. 开启 **Race Mode** 可并行生成 2 个 UI 变体
 5. 对话迭代修改 → **Deploy** 获取公开分享链接
+
+---
+
+## 界面截图（snapshot）
+
+线上访问较慢时，可通过以下截图了解主要界面（路径：`snapshot/`）：
+
+| 截图 | 说明 |
+|------|------|
+| [dashboard.png](snapshot/dashboard.png) | Dashboard 首页：输入需求、模板、Race 开关 |
+| [chat.png](snapshot/chat.png) | Workspace：多 Agent 对话、Plan 审批、预览 |
+| [code.png](snapshot/code.png) | 代码面板：多文件结构、生成结果 |
 
 ---
 
