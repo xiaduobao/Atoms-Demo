@@ -6,9 +6,14 @@ from app.schemas import (
     engineer_result_code,
     extract_html,
     generate_share_slug,
+    is_preview_error_html,
     merge_for_preview,
     parse_project_files,
     preview_code_from_files,
+    preview_error_html,
+    preview_error_reason,
+    sanitize_preview_code,
+    validate_preview_html,
 )
 from pydantic import ValidationError
 
@@ -103,3 +108,46 @@ def test_project_out_fills_missing_current_code():
         }
     )
     assert project.current_code and "Preview" in project.current_code
+
+
+def test_validate_preview_html_rejects_json_artifact():
+    ok, reason = validate_preview_html('{"files":[],"entry":"frontend/index.html"}')
+    assert not ok
+    assert reason in {"json_artifact", "json_parse_failed"}
+
+
+def test_unescape_llm_artifacts_fixes_literal_newlines():
+    from app.schemas import unescape_llm_artifacts
+
+    raw = "<!DOCTYPE html><html><body>\\n<h1>Hi</h1>\\n</body></html>"
+    fixed = unescape_llm_artifacts(raw)
+    assert "\\n" not in fixed
+    assert "\n<h1>" in fixed
+    ok, reason = validate_preview_html(raw)
+    assert ok
+    assert reason == ""
+
+
+def test_sanitize_preview_code_normalizes_escaped_html():
+    raw = "<!DOCTYPE html><html><head></head><body>\\n<p>Ok</p>\\n</body></html>"
+    result = sanitize_preview_code(raw)
+    assert result is not None
+    assert "\\n" not in result
+    assert is_preview_error_html(result) is False
+
+
+def test_sanitize_preview_code_returns_error_page():
+    result = sanitize_preview_code('{"files":[]}')
+    assert result is not None
+    assert is_preview_error_html(result)
+    assert preview_error_reason(result) == "json_parse_failed"
+
+
+def test_sanitize_preview_code_keeps_valid_html():
+    html = "<!DOCTYPE html><html><body>Ok</body></html>"
+    assert sanitize_preview_code(html) == html
+
+
+def test_preview_error_html_contains_marker():
+    page = preview_error_html("json_parse_failed")
+    assert "atoms-preview-error:json_parse_failed" in page

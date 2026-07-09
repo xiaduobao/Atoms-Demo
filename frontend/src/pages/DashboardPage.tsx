@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowUp, ChevronDown, Plus, Zap } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
@@ -17,19 +17,18 @@ export function DashboardPage() {
   const { user, refreshUser } = useAuth()
   const navigate = useNavigate()
   const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [raceMode, setRaceMode] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const promptRef = useRef<HTMLTextAreaElement>(null)
 
   const load = useCallback(async () => {
-    setLoading(true)
     try {
       setProjects(await api.listProjects())
       await refreshUser()
-    } finally {
-      setLoading(false)
+    } catch {
+      // Sidebar project list is optional; keep dashboard usable on fetch errors.
     }
   }, [refreshUser])
 
@@ -44,6 +43,17 @@ export function DashboardPage() {
       sessionStorage.removeItem('atoms_template_prompt')
     }
   }, [])
+
+  const handleDelete = async (projectId: string, projectName: string) => {
+    if (!window.confirm(`Delete "${projectName}"? This cannot be undone.`)) return
+    try {
+      await api.deleteProject(projectId)
+      setProjects((prev) => prev.filter((p) => p.id !== projectId))
+      toast.success('Project deleted')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete project')
+    }
+  }
 
   const handleBuild = async () => {
     const text = prompt.trim()
@@ -62,6 +72,13 @@ export function DashboardPage() {
     }
   }
 
+  const handleNewProject = () => {
+    setPrompt('')
+    setRaceMode(false)
+    promptRef.current?.focus()
+    promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
   const firstName = user?.name?.split(' ')[0] || 'there'
 
   return (
@@ -71,6 +88,8 @@ export function DashboardPage() {
         projects={projects}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+        onDeleteProject={handleDelete}
+        onNewProject={handleNewProject}
       />
 
       <main className="flex flex-1 flex-col overflow-y-auto">
@@ -105,6 +124,7 @@ export function DashboardPage() {
           <div className="w-full max-w-2xl">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <textarea
+                ref={promptRef}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => {
@@ -172,26 +192,6 @@ export function DashboardPage() {
             </div>
           </div>
         </div>
-
-        {!loading && projects.length > 0 && (
-          <section className="border-t border-slate-200 bg-white/60 px-8 py-8">
-            <h2 className="mb-4 text-sm font-medium text-slate-500">My Projects</h2>
-            <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2">
-              {projects.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => navigate(`/project/${p.id}`)}
-                  className="rounded-xl border border-slate-200 bg-white p-4 text-left hover:border-violet-300 hover:shadow-sm"
-                >
-                  <h3 className="font-medium text-slate-900">{p.name}</h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {p.status} · {new Date(p.updated_at).toLocaleDateString()}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
       </main>
     </div>
   )

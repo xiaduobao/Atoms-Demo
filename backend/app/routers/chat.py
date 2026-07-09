@@ -30,6 +30,7 @@ from app.schemas import (
     files_json_for_iterate,
     generate_share_slug,
     preview_code_from_files,
+    preview_error_reason,
 )
 
 router = APIRouter(prefix="/api/projects", tags=["chat"])
@@ -41,6 +42,19 @@ def _get_owned_project(project_id: str, user: User, db: Session) -> Project:
     if not project or project.user_id != user.id:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+
+def _sse_done_payload(result: dict) -> dict:
+    code = engineer_result_code(result)
+    payload: dict = {
+        "type": "done",
+        "code": code,
+        "files_json": result.get("files_json"),
+    }
+    err = result.get("preview_error") or preview_error_reason(code)
+    if err:
+        payload["preview_error"] = err
+    return payload
 
 
 def _deduct_credits(user: User, db: Session, amount: int) -> None:
@@ -194,7 +208,7 @@ async def generate_app(
                 session.commit()
         finally:
             session.close()
-        yield f"data: {json.dumps({'type': 'done', 'code': engineer_result_code(result), 'files_json': result.get('files_json')})}\n\n"
+        yield f"data: {json.dumps(_sse_done_payload(result))}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
@@ -328,7 +342,7 @@ async def iterate_app(
                 session.commit()
         finally:
             session.close()
-        yield f"data: {json.dumps({'type': 'done', 'code': engineer_result_code(result), 'files_json': result.get('files_json')})}\n\n"
+        yield f"data: {json.dumps(_sse_done_payload(result))}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 

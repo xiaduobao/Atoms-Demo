@@ -1,4 +1,5 @@
 import type { RaceVariant } from '../types'
+import { normalizePreviewCode } from '../previewUtils'
 
 interface RaceModePanelProps {
   variants: RaceVariant[]
@@ -17,7 +18,7 @@ export function RaceModePanel({ variants, onSelect, loading }: RaceModePanelProp
           <div key={v.id} className="overflow-hidden rounded-lg border border-violet-200 bg-white">
             <div className="border-b px-3 py-2 text-sm font-medium">{v.style_label}</div>
             <iframe
-              srcDoc={v.preview_html}
+              srcDoc={normalizePreviewCode(v.preview_html) || ''}
               sandbox="allow-scripts allow-same-origin"
               className="h-48 w-full"
               title={v.style_label}

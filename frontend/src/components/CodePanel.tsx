@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Copy, FileCode, Monitor } from 'lucide-react'
+import { Copy, Download, FileCode, Monitor } from 'lucide-react'
 import type { FilesPayload } from '../types'
 
 interface CodePanelProps {
@@ -33,6 +33,18 @@ export function CodePanel({ filesJson, fallbackCode }: CodePanelProps) {
     navigator.clipboard.writeText(JSON.stringify({ files, entry: payload?.entry }, null, 2))
   }
 
+  const downloadFile = () => {
+    if (!current) return
+    const name = current.path.split('/').pop() || 'file.txt'
+    const blob = new Blob([current.content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = name
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   if (files.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-slate-400">
@@ -42,8 +54,8 @@ export function CodePanel({ filesJson, fallbackCode }: CodePanelProps) {
   }
 
   return (
-    <div className="flex h-full flex-col bg-slate-900 text-slate-100">
-      <div className="flex items-center justify-between border-b border-slate-700 px-3 py-2 text-xs">
+    <div className="flex h-full min-h-0 flex-col bg-slate-900 text-slate-100">
+      <div className="flex shrink-0 items-center justify-between border-b border-slate-700 px-3 py-2 text-xs">
         <span className="flex items-center gap-1 text-slate-400">
           <Monitor className="h-3 w-3" /> {files.length} files
         </span>
@@ -51,12 +63,15 @@ export function CodePanel({ filesJson, fallbackCode }: CodePanelProps) {
           <button onClick={copyFile} className="flex items-center gap-1 hover:text-white">
             <Copy className="h-3 w-3" /> Copy file
           </button>
+          <button onClick={downloadFile} className="flex items-center gap-1 hover:text-white">
+            <Download className="h-3 w-3" /> Download
+          </button>
           <button onClick={copyAll} className="flex items-center gap-1 hover:text-white">
             <Copy className="h-3 w-3" /> Copy all
           </button>
         </div>
       </div>
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <div className="w-44 shrink-0 overflow-y-auto border-r border-slate-700 p-2 text-xs">
           {files.map((f) => (
             <button
@@ -70,9 +85,11 @@ export function CodePanel({ filesJson, fallbackCode }: CodePanelProps) {
             </button>
           ))}
         </div>
-        <pre className="flex-1 overflow-auto p-3 text-xs leading-relaxed text-green-400">
-          {current?.content}
-        </pre>
+        <div className="min-w-0 flex-1 [scrollbar-gutter:stable] overflow-auto">
+          <pre className="box-border min-w-0 p-3 pr-4 text-xs leading-relaxed [overflow-wrap:anywhere] break-words whitespace-pre-wrap text-green-400">
+            {current?.content}
+          </pre>
+        </div>
       </div>
     </div>
   )

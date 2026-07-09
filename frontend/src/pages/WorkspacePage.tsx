@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Monitor, Rocket, Send, Share2, Zap } from 'lucide-react'
+import { ArrowLeft, Monitor, Plus, Rocket, Send, Share2, Trash2, Zap } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import { api, streamPost } from '../api/client'
 import { AgentMessage, TypingIndicator } from '../components/AgentMessage'
@@ -202,16 +202,22 @@ export function WorkspacePage() {
     setRightTab('preview')
     setActiveAgent('engineer')
     try {
+      let previewFailed = false
       await streamPost(`/projects/${id}/generate`, undefined, (ev) => {
         if (ev.type === 'done') {
           setPreviewCode(ev.code as string)
           if (ev.files_json) setFilesJson(ev.files_json as string)
+          if (ev.preview_error) previewFailed = true
         }
       })
       setCompletedAgents((prev) => [...new Set([...prev, 'engineer'])])
       await load()
       await refreshUser()
-      toast.success('App generated!')
+      if (previewFailed) {
+        toast.error('应用已保存，但预览无法渲染。请查看 Code 面板或重新生成。')
+      } else {
+        toast.success('App generated!')
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Generate failed')
     } finally {
@@ -225,16 +231,22 @@ export function WorkspacePage() {
     setStreaming(true)
     setActiveAgent('engineer')
     try {
+      let previewFailed = false
       await streamPost(`/projects/${id}/iterate`, { message: text }, (ev) => {
         if (ev.type === 'done') {
           setPreviewCode(ev.code as string)
           if (ev.files_json) setFilesJson(ev.files_json as string)
+          if (ev.preview_error) previewFailed = true
         }
       })
       setCompletedAgents((prev) => [...new Set([...prev, 'engineer'])])
       await load()
       await refreshUser()
-      toast.success('App updated!')
+      if (previewFailed) {
+        toast.error('应用已更新，但预览无法渲染。请查看 Code 面板或重新生成。')
+      } else {
+        toast.success('App updated!')
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Iterate failed')
     } finally {
@@ -254,6 +266,18 @@ export function WorkspacePage() {
       await load()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Deploy failed')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!id || !project) return
+    if (!window.confirm(`Delete "${project.name}"? This cannot be undone.`)) return
+    try {
+      await api.deleteProject(id)
+      toast.success('Project deleted')
+      navigate('/dashboard')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete project')
     }
   }
 
@@ -291,6 +315,18 @@ export function WorkspacePage() {
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">{project.status}</span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm hover:bg-slate-100"
+          >
+            <Plus className="h-4 w-4" /> New
+          </button>
+          <button
+            onClick={handleDelete}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm text-red-600 hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
           <label className="flex items-center gap-1 text-xs text-slate-600">
             <input
               type="checkbox"
@@ -395,8 +431,8 @@ export function WorkspacePage() {
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col">
-          <div className="flex border-b text-sm">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex shrink-0 border-b text-sm">
             <button
               onClick={() => setRightTab('preview')}
               className={`px-4 py-2 ${rightTab === 'preview' ? 'border-b-2 border-violet-600 font-medium' : ''}`}
@@ -410,7 +446,7 @@ export function WorkspacePage() {
               Code
             </button>
           </div>
-          <div className="flex-1 overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-hidden">
             {rightTab === 'preview' ? (
               <PreviewPanel code={previewCode} streaming={streaming} />
             ) : (

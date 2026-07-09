@@ -1,7 +1,14 @@
 import json
 
 from app.config import settings
-from app.schemas import extract_html, merge_for_preview, parse_project_files
+from app.schemas import (
+    extract_html,
+    merge_for_preview,
+    parse_project_files,
+    preview_error_html,
+    preview_error_reason,
+    sanitize_preview_code,
+)
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.config import get_stream_writer
@@ -115,23 +122,29 @@ def _finalize_engineer_output(raw: str) -> dict:
     project_files = parse_project_files(raw)
     if project_files:
         files_json = json.dumps(project_files.model_dump())
-        preview_html = merge_for_preview(project_files)
+        preview_html = sanitize_preview_code(merge_for_preview(project_files))
+        if not preview_html:
+            preview_html = preview_error_html("empty")
+    else:
+        raw_html = extract_html(raw)
+        preview_html = sanitize_preview_code(raw_html) or preview_error_html("json_parse_failed")
+        files_json = json.dumps(
+            {
+                "files": [{"path": "frontend/index.html", "language": "html", "content": raw_html}],
+                "entry": "frontend/index.html",
+            }
+        )
         return {
             "files_json": files_json,
             "preview_html": preview_html,
             "current_code": preview_html,
+            "preview_error": preview_error_reason(preview_html),
             "current_agent": "engineer",
         }
-    html = extract_html(raw)
-    files_json = json.dumps(
-        {
-            "files": [{"path": "frontend/index.html", "language": "html", "content": html}],
-            "entry": "frontend/index.html",
-        }
-    )
     return {
         "files_json": files_json,
-        "preview_html": html,
-        "current_code": html,
+        "preview_html": preview_html,
+        "current_code": preview_html,
+        "preview_error": preview_error_reason(preview_html),
         "current_agent": "engineer",
     }

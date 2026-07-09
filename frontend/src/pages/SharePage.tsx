@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api/client'
+import { normalizePreviewCode } from '../previewUtils'
 import type { SharedProject } from '../types'
 
 export function SharePage() {
@@ -29,7 +30,7 @@ export function SharePage() {
         {project.name} — Shared Preview
       </header>
       <iframe
-        srcDoc={project.current_code || ''}
+        srcDoc={normalizePreviewCode(project.current_code) || ''}
         sandbox="allow-scripts allow-same-origin"
         className="w-full flex-1"
         title="Shared preview"
