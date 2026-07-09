@@ -23,7 +23,7 @@ chmod +x start.sh
    - `LLM_MODEL` (e.g. `deepseek-chat`)
    - `DATABASE_URL` (use PostgreSQL on Railway for persistence)
    - `CORS_ORIGINS` (your Vercel frontend URL)
-3. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+3. **Start command:** leave empty (use Dockerfile `CMD`) or `sh -c 'uvicorn app.main:app --host 0.0.0.0 --port $PORT'`. Do **not** use `--port ${PORT:-8000}` in Railway UI — it is not expanded by a shell.
 
 **Frontend (Vercel):**
 
