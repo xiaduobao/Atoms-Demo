@@ -7,12 +7,17 @@ chmod +x start.sh
 ./start.sh
 ```
 
+`start.sh` is **development only** (creates venv, runs `npm run dev`). Do not use it on Railway or other PaaS — the container will fail with `python3: command not found`.
+
 ### Option B: Frontend on Vercel + Backend on Railway
 
 **Backend (Railway / Render / Fly.io):**
 
-1. Create a new service pointing to `backend/` directory
-2. Set environment variables:
+**Railway (repo root):** The root `Dockerfile` + `railway.toml` deploy the backend API only. Push to trigger a redeploy; do not set the start command to `./start.sh`.
+
+**Railway (backend subdirectory):** Alternatively set Root Directory to `backend/` and use `backend/Dockerfile`.
+
+1. Set environment variables:
    - `LLM_API_KEY`
    - `LLM_BASE_URL` (e.g. `https://api.deepseek.com/v1`)
    - `LLM_MODEL` (e.g. `deepseek-chat`)
