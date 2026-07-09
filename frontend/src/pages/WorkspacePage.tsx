@@ -112,7 +112,6 @@ export function WorkspacePage() {
                 },
               ])
             }
-            if (ev.type === 'error') toast.error(ev.message as string)
           },
         )
         await load()
@@ -208,7 +207,6 @@ export function WorkspacePage() {
           setPreviewCode(ev.code as string)
           if (ev.files_json) setFilesJson(ev.files_json as string)
         }
-        if (ev.type === 'error') toast.error(ev.message as string)
       })
       setCompletedAgents((prev) => [...new Set([...prev, 'engineer'])])
       await load()
@@ -232,7 +230,6 @@ export function WorkspacePage() {
           setPreviewCode(ev.code as string)
           if (ev.files_json) setFilesJson(ev.files_json as string)
         }
-        if (ev.type === 'error') toast.error(ev.message as string)
       })
       setCompletedAgents((prev) => [...new Set([...prev, 'engineer'])])
       await load()

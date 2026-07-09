@@ -15,6 +15,27 @@ export function setToken(token: string | null) {
   else localStorage.removeItem('atoms_token')
 }
 
+export function parseApiError(err: unknown, fallback: string): string {
+  if (typeof err !== 'object' || err === null) return fallback
+  const body = err as Record<string, unknown>
+  const nested = body.error
+  if (typeof nested === 'object' && nested !== null) {
+    const message = (nested as Record<string, unknown>).message
+    if (typeof message === 'string') return message
+  }
+  if (typeof body.detail === 'string') return body.detail
+  if (body.detail !== undefined) return JSON.stringify(body.detail)
+  return fallback
+}
+
+function handleUnauthorized(path: string): void {
+  setToken(null)
+  const isAuthProbe = path === '/auth/me' || path.endsWith('/auth/me')
+  if (!isAuthProbe) {
+    window.location.href = '/login'
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken()
   const res = await fetch(`${API_BASE}${path}`, {
@@ -26,17 +47,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   })
   if (res.status === 401) {
-    setToken(null)
-    // /auth/me is used to probe session; 401 is expected when logged out.
-    const isAuthProbe = path === '/auth/me' || path.endsWith('/auth/me')
-    if (!isAuthProbe) {
-      window.location.href = '/login'
-    }
+    handleUnauthorized(path)
     throw new Error('Unauthorized')
   }
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail))
+    const err = await res.json().catch(() => ({}))
+    throw new Error(parseApiError(err, res.statusText))
   }
   return res.json()
 }
@@ -103,6 +119,15 @@ export const api = {
   getShared: (slug: string) => request<SharedProject>(`/share/${slug}`),
 }
 
+export function parseSseDataLine(line: string): Record<string, unknown> | null {
+  if (!line.startsWith('data: ')) return null
+  try {
+    return JSON.parse(line.slice(6)) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
 export async function streamPost(
   path: string,
   body: unknown | undefined,
@@ -117,10 +142,15 @@ export async function streamPost(
     },
     body: body ? JSON.stringify(body) : undefined,
   })
-  if (!res.ok || !res.body) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail || 'Stream failed')
+  if (res.status === 401) {
+    handleUnauthorized(path)
+    throw new Error('Unauthorized')
   }
+  if (!res.ok || !res.body) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(parseApiError(err, 'Stream failed'))
+  }
+
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
@@ -131,13 +161,13 @@ export async function streamPost(
     const lines = buffer.split('\n')
     buffer = lines.pop() || ''
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        try {
-          onEvent(JSON.parse(line.slice(6)))
-        } catch {
-          /* skip */
-        }
+      const event = parseSseDataLine(line)
+      if (!event) continue
+      if (event.type === 'error') {
+        const message = typeof event.message === 'string' ? event.message : 'Stream error'
+        throw new Error(message)
       }
+      onEvent(event)
     }
   }
 }

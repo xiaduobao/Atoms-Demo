@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import init_db
+from app.exceptions import register_exception_handlers
 from app.routers import auth, chat, credits, projects, share
 from app.seed import seed_demo_user
 
@@ -31,6 +32,8 @@ app.include_router(projects.router)
 app.include_router(chat.router)
 app.include_router(credits.router)
 app.include_router(share.router)
+
+register_exception_handlers(app)
 
 
 @app.get("/api/health")

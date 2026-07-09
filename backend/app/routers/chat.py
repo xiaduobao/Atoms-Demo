@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
@@ -16,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import SessionLocal, get_db
+from app.exceptions import sse_error_line
 from app.models import CodeVersion, Message, Project, RaceVariant, User
 from app.schemas import (
     ChatRequest,
@@ -31,6 +33,7 @@ from app.schemas import (
 )
 
 router = APIRouter(prefix="/api/projects", tags=["chat"])
+logger = logging.getLogger(__name__)
 
 
 def _get_owned_project(project_id: str, user: User, db: Session) -> Project:
@@ -117,7 +120,8 @@ async def create_plan(
                     yield f"data: {json.dumps({'type': 'node_done', 'agent': agent, 'content': content})}\n\n"
             yield f"data: {json.dumps({'type': 'await_approve'})}\n\n"
         except Exception as exc:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+            logger.exception("Plan stream failed for project %s", project_id)
+            yield sse_error_line(exc)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
@@ -158,7 +162,8 @@ async def generate_app(
             snapshot = await generate_graph.aget_state(thread_config)
             result = snapshot.values if snapshot else {}
         except Exception as exc:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+            logger.exception("Generate stream failed for project %s", project_id)
+            yield sse_error_line(exc)
             return
 
         session = SessionLocal()
@@ -292,7 +297,8 @@ async def iterate_app(
                 chunks.append(chunk)
                 yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
         except Exception as exc:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+            logger.exception("Iterate stream failed for project %s", project_id)
+            yield sse_error_line(exc)
             return
 
         result = _finalize_engineer_output("".join(chunks))
