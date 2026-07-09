@@ -37,6 +37,14 @@ export function DashboardPage() {
     load()
   }, [load])
 
+  useEffect(() => {
+    const saved = sessionStorage.getItem('atoms_template_prompt')
+    if (saved) {
+      setPrompt(saved)
+      sessionStorage.removeItem('atoms_template_prompt')
+    }
+  }, [])
+
   const handleBuild = async () => {
     const text = prompt.trim()
     if (!text || submitting) return

@@ -199,11 +199,11 @@ export function WorkspacePage() {
     }
 
     setStreaming(true)
-    setPreviewCode('')
+    setPreviewCode(null)
+    setRightTab('preview')
     setActiveAgent('engineer')
     try {
       await streamPost(`/projects/${id}/generate`, undefined, (ev) => {
-        if (ev.type === 'chunk') setPreviewCode((p) => (p || '') + (ev.content as string))
         if (ev.type === 'done') {
           setPreviewCode(ev.code as string)
           if (ev.files_json) setFilesJson(ev.files_json as string)

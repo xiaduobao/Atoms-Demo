@@ -11,6 +11,10 @@ chmod +x start.sh
 
 ### Option B: Frontend on Vercel + Backend on Railway
 
+**Live deployment:**
+- Frontend: https://atoms-demo-rho.vercel.app/
+- Backend: https://atoms-demo-production.up.railway.app
+
 **Backend (Railway / Render / Fly.io):**
 
 **Railway (repo root):** The root `Dockerfile` + `railway.toml` deploy the backend API only. Push to trigger a redeploy; do not set the start command to `./start.sh`.
@@ -23,13 +27,13 @@ chmod +x start.sh
    - `LLM_MODEL` (e.g. `deepseek-chat`)
    - `DATABASE_URL` (use PostgreSQL on Railway for persistence)
    - `CORS_ORIGINS` (your Vercel frontend URL)
-3. **Start command:** leave empty (use Dockerfile `CMD`) or `sh -c 'uvicorn app.main:app --host 0.0.0.0 --port $PORT'`. Do **not** use `--port ${PORT:-8000}` in Railway UI — it is not expanded by a shell.
+3. **Start command:** `./entrypoint.sh` (or leave empty to use Dockerfile `ENTRYPOINT`). Do **not** use `uvicorn ... --port ${PORT:-8000}` — Railway does not expand shell defaults in the UI.
 
 **Frontend (Vercel):**
 
 1. Import repo, set root directory to `frontend/`
 2. Set environment variable:
-   - `VITE_API_BASE` = `https://your-backend.railway.app/api`
+   - `VITE_API_BASE` = `https://atoms-demo-production.up.railway.app/api`
 3. Deploy
 
 ### Option C: Docker (Backend only)

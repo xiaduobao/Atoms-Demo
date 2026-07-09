@@ -71,7 +71,10 @@ def test_generate_share_slug_unique():
 
 def test_engineer_result_code_prefers_preview_html():
     assert engineer_result_code({"preview_html": "<html></html>"}) == "<html></html>"
-    assert engineer_result_code({"current_code": "<html>a</html>", "preview_html": "<html>b</html>"}) == "<html>a</html>"
+    assert (
+        engineer_result_code({"current_code": "<html>a</html>", "preview_html": "<html>b</html>"})
+        == "<html>a</html>"
+    )
 
 
 def test_preview_code_from_files():

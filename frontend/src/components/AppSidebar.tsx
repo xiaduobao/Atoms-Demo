@@ -3,6 +3,9 @@ import { Home, LogOut, PanelLeftClose, Sparkles } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import type { Project } from '../types'
 
+const COMMUNITY_URL =
+  import.meta.env.VITE_COMMUNITY_URL || 'https://atoms.dev/register?invitecode=lpWOikio'
+
 interface AppSidebarProps {
   projects?: Project[]
   collapsed?: boolean
@@ -107,9 +110,14 @@ export function AppSidebar({
             Logout
           </button>
         </div>
-        <div className="rounded-xl bg-violet-600 px-3 py-2.5 text-center text-sm font-medium text-white">
+        <a
+          href={COMMUNITY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block rounded-xl bg-violet-600 px-3 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-violet-500"
+        >
           Join our Community
-        </div>
+        </a>
       </div>
     </aside>
   )

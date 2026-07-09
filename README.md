@@ -2,7 +2,20 @@
 
 AI-powered app builder inspired by [Atoms](https://atoms.dev/) — describe an idea, watch a LangGraph multi-agent team plan and build it, preview live, iterate, and deploy.
 
+**Live Demo:** https://atoms-demo-rho.vercel.app/ · **Source:** https://github.com/xiaduobao/Atoms-Demo/
+
 **Stack:** React + TypeScript · FastAPI · LangGraph · LangChain · SQLite
+
+## 评审快速体验（推荐）
+
+1. 打开 https://atoms-demo-rho.vercel.app/ → **Sign in**
+2. 账号 `demo@atoms.demo` / `demo123456`（登录页已预填）
+3. 进入预置项目 **「Todo App (Demo)」** → 右侧预览可交互
+4. 或 Dashboard → 点 **Todo App** 模板 → 审批 Plan → Generate → Deploy
+
+分享页示例：https://atoms-demo-rho.vercel.app/share/demo-todo
+
+笔试提交说明见 [SUBMISSION.md](SUBMISSION.md)
 
 ## Quick Start
 

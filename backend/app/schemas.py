@@ -87,7 +87,9 @@ class SharedProjectOut(BaseModel):
                 "current_code": data.current_code or preview_code_from_files(data.files_json),
             }
         if isinstance(data, dict):
-            current_code = data.get("current_code") or preview_code_from_files(data.get("files_json"))
+            current_code = data.get("current_code") or preview_code_from_files(
+                data.get("files_json")
+            )
             return {"name": data["name"], "current_code": current_code}
         return data
 

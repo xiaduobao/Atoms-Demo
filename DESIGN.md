@@ -5,7 +5,7 @@
 - **Frontend:** React + TypeScript + Vite + Tailwind + react-router-dom
 - **Backend:** FastAPI + LangGraph + LangChain
 - **Auth:** Email/password + JWT (local mode); Supabase sync endpoint ready
-- **DB:** SQLite (dev) / PostgreSQL (prod via Supabase)
+- **DB:** SQLite file (dev) / SQLite in-memory + seed (prod on Railway)
 - **Observability:** LangSmith (optional env vars)
 - **Quality:** ruff + pytest + oxlint + Prettier + Vitest + GitHub Actions CI
 
@@ -25,6 +25,7 @@ Race mode → 2× parallel engineer → user selects variant
 | vs CrewAI | Not used | LangGraph better for token streaming + graph control |
 | Generated output | Multi-file JSON | File tree UI; merged HTML for iframe preview |
 | Auth | Local JWT first | Works without Supabase setup; sync endpoint for prod |
+| Prod DB | SQLite in-memory + seed | Avoids Postgres setup; demo project restored on restart |
 | RAGAS | Offline eval script | CI-friendly; not blocking main flow |
 
 ## Completion Status
@@ -45,7 +46,8 @@ Race mode → 2× parallel engineer → user selects variant
 | RAGAS eval | ✅ (script) |
 | pytest / Vitest | ✅ |
 | CI lint + test | ✅ |
-| Online deploy | ⬜ user action |
+| Online deploy | ✅ Vercel + Railway |
+| Demo showcase project | ✅ seed on startup |
 
 ## Known Limitations
 
@@ -53,10 +55,22 @@ Race mode → 2× parallel engineer → user selects variant
 - Race mode costs 2× LLM calls + 2 credits
 - Supabase Auth UI optional; local auth is default
 - Generated `schema.sql` is illustrative, not executed
+- In-memory DB resets on container restart; user projects lost, demo re-seeded
 
 ## Roadmap
 
-1. PostgreSQL on Railway for persistent deploy
-2. LangGraph Studio visualization export
-3. Full RAGAS CI with golden prompts
-4. Supabase Auth frontend integration
+### Phase 1 — Infrastructure
+1. PostgreSQL + Redis (LangGraph checkpoint); lightweight alt: Railway Volume + SQLite file
+2. Rate limiting / LLM circuit breaker (complements Credits)
+
+### Phase 2 — Quality loop
+3. Eval pipeline: RAGAS golden set in CI → online post-generation scoring → metrics dashboard
+
+### Phase 3 — Product
+4. Remix / Fork from share page
+5. Multimodal input (design mockup / screenshot → UI)
+
+### Phase 4 — Ops
+6. Monitoring & alerting (Sentry + generation success rate / latency)
+7. Supabase Auth frontend integration
+8. LangGraph Studio visualization export

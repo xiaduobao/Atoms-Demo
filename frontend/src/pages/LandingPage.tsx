@@ -1,8 +1,20 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Sparkles, ArrowRight } from 'lucide-react'
 import { TEMPLATES } from '../types'
+import { useAuth } from '../hooks/useAuth'
+
+const TEMPLATE_STORAGE_KEY = 'atoms_template_prompt'
 
 export function LandingPage() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
+  const handleTemplate = (prompt: string) => {
+    sessionStorage.setItem(TEMPLATE_STORAGE_KEY, prompt)
+    if (user) navigate('/dashboard')
+    else navigate('/login')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900 text-white">
       <div className="mx-auto max-w-5xl px-6 py-16">
@@ -56,9 +68,14 @@ export function LandingPage() {
 
         <div className="mt-12 flex flex-wrap gap-2">
           {TEMPLATES.map((t) => (
-            <span key={t.title} className="rounded-full border border-white/10 px-3 py-1 text-sm">
+            <button
+              key={t.title}
+              type="button"
+              onClick={() => handleTemplate(t.prompt)}
+              className="rounded-full border border-white/10 px-3 py-1 text-sm transition hover:border-violet-400 hover:text-violet-200"
+            >
               {t.title}
-            </span>
+            </button>
           ))}
         </div>
       </div>
